@@ -1,0 +1,22 @@
+// 判断一个合约是否是工厂合约
+#include "../gigahorse-toolchain/clientlib/decompiler_imports.dl"
+
+// A rule that is true if a contract contains a factory statement (CREATE/CREATE2).
+// It captures the full path: the contract, the function, and the specific statement.
+
+.decl IsFactory(func: Function, block: Block, stmt: Statement)
+.output IsFactory
+
+// A contract is a factory if it contains a CREATE statement.
+IsFactory(func, block, stmt) :-
+    CREATE(stmt, _, _, _, _),
+    Statement_Block(stmt, block),
+    Statement_Function(stmt, func).
+
+
+
+// A contract is also a factory if it contains a CREATE2 statement.
+IsFactory(func, block, stmt) :-
+    CREATE2(stmt, _, _, _, _, _),
+    Statement_Block(stmt, block),
+    Statement_Function(stmt, func).
