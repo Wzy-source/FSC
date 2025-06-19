@@ -6,7 +6,7 @@ def detect_factory(file_path: str) -> bool:
     # 构造命令，执行自定义factory.dl文件
     command = (
         f"../gigahorse-toolchain/gigahorse.py "
-        f"--timeout_secs=60 "
+        f"--timeout_secs=300 "
         f"-C ../datalog/factory.dl "
         f"{file_path}"
     )
@@ -25,5 +25,5 @@ def detect_factory(file_path: str) -> bool:
 
 
 if __name__ == '__main__':
-    file_path = "../tests/factory/ImmutableCreate2Factory.hex"
+    file_path = "../tests/factory/ERC1155SeaDropCloneFactory.hex"
     detect_factory(file_path)

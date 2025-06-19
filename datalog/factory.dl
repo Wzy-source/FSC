@@ -4,11 +4,10 @@
 // A rule that is true if a contract contains a factory statement (CREATE/CREATE2).
 // It captures the full path: the contract, the function, and the specific statement.
 
-.decl IsFactory(func: Function, block: Block, stmt: Statement)
-.output IsFactory
 
 // A contract is a factory if it contains a CREATE statement.
-IsFactory(func, block, stmt) :-
+.decl IsCreateFactory(func: Function, block: Block, stmt: Statement)
+IsCreateFactory(func, block, stmt) :-
     CREATE(stmt, _, _, _, _),
     Statement_Block(stmt, block),
     Statement_Function(stmt, func).
@@ -16,7 +15,14 @@ IsFactory(func, block, stmt) :-
 
 
 // A contract is also a factory if it contains a CREATE2 statement.
-IsFactory(func, block, stmt) :-
+.decl IsCreate2Factory(func: Function, block: Block, stmt: Statement)
+IsCreate2Factory(func, block, stmt) :-
     CREATE2(stmt, _, _, _, _, _),
     Statement_Block(stmt, block),
     Statement_Function(stmt, func).
+
+
+// 一个合约是工厂当且仅当其是Create / Create2 Factory
+.decl IsFactory(func: Function, block: Block, stmt: Statement)
+IsFactory(func, block, statement) :- IsCreate2Factory(func, block, statement); IsCreateFactory(func, block, statement).
+.output IsFactory
