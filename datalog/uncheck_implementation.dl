@@ -32,8 +32,6 @@ TaintedConditionalVars(checkedVar, jmpStmt) :-
 
 
 
-
-
 // 未验证的 `implementation` 地址
 .decl MissingImplementationValidation(checkedVar: Variable)
 .output MissingImplementationValidation
