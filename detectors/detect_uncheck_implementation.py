@@ -1,29 +1,47 @@
-import os
+from typing import List
+from slither import Slither
+from slither.core.variables import StateVariable, Variable
+
+API_KEY = "HPXNN2GP4VFJIBD4USI8QJF6MFI75HRQZT"
 
 
 # 调用gigahorse，执行自定义的datalog文件，判断是否存在MissingImplementationValidation.csv文件
-def detect_uncheck_implementation(file_path: str) -> bool:
+def detect_uncheck_implementation(name: str, address: str, chain: str) -> bool:
     # 构造命令，执行自定义factory.dl文件
-    command = (
-        f"../gigahorse-toolchain/gigahorse.py "
-        f"--timeout_secs=300 "
-        f"-C ../datalog/uncheck_implementation.dl "
-        f"{file_path}"
-    )
-    # 执行gigahourse
-    os.system(command)
-    # 判断out文件夹是否输出IsFactory文件
-    contract_name = os.path.splitext(os.path.basename(file_path))[0]
-    is_factory_file = os.path.join(".", ".temp", contract_name, "out", "MissingImplementationValidation.csv")
-    if os.path.exists(is_factory_file) and os.path.getsize(is_factory_file) > 0:
-        # 如果不是工厂，gigahorse会创建一个空的IsFactory.csv文件
-        print(f"INFO: Found non-empty MissingImplementationValidation.csv. Contract '{contract_name}' has the issue.")
-        return True
+    slither = Slither(target=address, etherscan_api_key=API_KEY, disable_solc_warnings=True)
+    main_contract = slither.get_contract_from_name(name)
+    assert len(main_contract) == 1, f"No Contract Or Multiple Contracts Named {name}"
+    main_contract = main_contract[0]
+    # 判断合约是否调用了两个函数“clone / cloneDeterministic”
+    all_implementation_vars: List[Variable] = []
+    for fn in main_contract.functions:
+        for lib_call in fn.library_calls:
+            if lib_call.function.canonical_name in ["Clones.clone(address)",
+                                                    "Clones.cloneDeterministic(address,bytes32)"]:
+                # 获取第一个address参数
+                arg = lib_call.arguments[0]
+                if arg.type.name == "address":
+                    # 判断是否有对这个变量进行约束
+                    all_implementation_vars.append(arg)
 
-    print(f"INFO: IsFactory.csv not found or is empty. Contract '{contract_name}' is safe.")
+    # 收集所有的conditional_variables
+    all_conditional_variables: List[Variable] = []
+    for fn in main_contract.functions_and_modifiers:
+        for node in fn.nodes:
+            if node.is_conditional(False):
+                all_conditional_variables.extend(node.variables_read)
+
+    # 判断implementation合约地址变量是否被约束
+    for imp_var in all_implementation_vars:
+        if imp_var not in all_conditional_variables:
+            return True
+
     return False
 
 
 if __name__ == '__main__':
-    file_path = "../tests/factory/ERC1155SeaDropCloneFactory.hex"
-    detect_uncheck_implementation(file_path)
+    name = "ERC721SeaDropCloneFactory"
+    address = "0x00000000b8f8f18b708c8f7aa10f9ee7ea88049a"
+    chain = ""
+    res = detect_uncheck_implementation(name, address, chain)
+    print(res)

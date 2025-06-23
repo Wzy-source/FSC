@@ -8,7 +8,7 @@ import re
 API_KEY = "HPXNN2GP4VFJIBD4USI8QJF6MFI75HRQZT"
 
 
-def detect_low_level_creation(name: str, address: str) -> bool:
+def detect_low_level_creation(name: str, address: str, chain: str) -> bool:
     # 定位到工厂函数（使用了create / create2 内联汇编代码的函数）
     # 提取create / create2的返回值：deploymentAddress
     # 判断是否对deploymentAddress进行了一系列检查（论文）
@@ -39,5 +39,6 @@ def detect_low_level_creation(name: str, address: str) -> bool:
 if __name__ == '__main__':
     name = "ImmutableCreate2Factory"
     address = "0x0000000000ffe8b47b3e2130213b802212439497"
-    is_factory = detect_low_level_creation(name, address)
+    chain = ""
+    is_factory = detect_low_level_creation(name, address, chain)
     print(is_factory)

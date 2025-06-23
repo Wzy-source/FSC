@@ -5,9 +5,10 @@
 
 // Clone Function
 .decl IsCloneFunction(fn: Function)
+.output IsCloneFunction
 
 IsCloneFunction(fn) :-
-    HighLevelFunctionName(fn, "clone");
+    HighLevelFunctionName(fn, "clone"); // 或的关系
     HighLevelFunctionName(fn, "cloneDeterministic").
 
 // 识别 `implementation` 地址的潜在来源：针对 clone 和 cloneDeterministic 函数的第一个参数
